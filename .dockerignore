@@ -1,0 +1,7 @@
+.git
+.github
+.idea
+.vscode
+__pycache__
+*.pyc
+output
