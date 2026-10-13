@@ -324,21 +324,36 @@ def main() -> None:
             encoding="utf-8",
         )
 
-        validation_notes = (
-            "SALES VALIDATION NOTES\n"
-            "======================\n"
+        rejected_details = (
+            invalid_sales
+            .select("order_id", "validation_errors")
+            .orderBy(F.col("order_id"))
+            .limit(100)
+            .collect()
+        )
+        validation_lines = [
+            "SALES VALIDATION NOTES",
+            "======================",
             "A valid transaction must have all seven required fields populated. "
             "order_date must be a valid date in YYYY-MM-DD format; quantity must "
             "be numeric, positive, and a whole number; unit_price must be numeric "
-            "and greater than zero.\n\n"
-            "Invalid transactions are excluded from revenue and unit calculations. "
-            "See invalid_transactions/ for the original rows and their "
-            "validation_errors. For the supplied sample, orders 1008, 1009, and "
-            "1012 are rejected because quantity is zero, quantity is negative, "
-            "and unit_price is negative, respectively.\n"
-        )
+            "and greater than zero.",
+            "",
+            f"Records processed: {total_records}",
+            f"Records rejected: {invalid_count}",
+            "The complete rejected rows and explanations are in invalid_transactions/.",
+            "Up to 100 rejected order IDs and reasons are listed below:",
+        ]
+        if rejected_details:
+            for rejected_row in rejected_details:
+                order_id = rejected_row["order_id"] or "(missing order_id)"
+                validation_lines.append(
+                    f"- order_id={order_id}: {rejected_row['validation_errors']}"
+                )
+        else:
+            validation_lines.append("No invalid transactions were found.")
         (output_dir / "validation_notes.txt").write_text(
-            validation_notes,
+            "\n".join(validation_lines) + "\n",
             encoding="utf-8",
         )
 
