@@ -1,0 +1,17 @@
+services:
+  sales-analysis:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: "0:0"
+    environment:
+      INPUT_PATH: /opt/spark-app/data/sales.csv
+      OUTPUT_DIR: /opt/spark-app/output
+    volumes:
+      - ./data:/opt/spark-app/data:ro
+      - ./output:/opt/spark-app/output
+    command:
+      - --master
+      - local[*]
+      - /opt/spark-app/src/sales_analysis.py
+    restart: "no"
